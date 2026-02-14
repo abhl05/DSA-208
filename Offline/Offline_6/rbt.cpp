@@ -12,7 +12,7 @@ public:
     RBNode* left;
     RBNode* right;
     RBNode* parent;
-    int size; // Size of subtree rooted at this node
+    int size; 
 
     RBNode(T data) : data(data), color(RED), left(nullptr), right(nullptr), parent(nullptr), size(1) {}
 };
@@ -44,7 +44,6 @@ private:
         y->left = x;
         x->parent = y;
         
-        // Update sizes
         y->size = x->size;
         x->size = getSize(x->left) + getSize(x->right) + 1;
     }
@@ -70,37 +69,36 @@ private:
         x->right = y;
         y->parent = x;
         
-        // Update sizes
         x->size = y->size;
         y->size = getSize(y->left) + getSize(y->right) + 1;
     }
 
-    void insertFixup(RBNode<T>* z) {
-        while (z->parent->color == RED) {
-            if (z->parent == z->parent->parent->left) {
-                RBNode<T>* y = z->parent->parent->right;
-                if (y->color == RED) {
+    void insertFixup(RBNode<T>* z) { // case 1.a, 1.b, 2
+        while (z->parent->color == RED) { // while red-red violation
+            if (z->parent == z->parent->parent->left) { // inserted node is in left subtree
+                RBNode<T>* uncle = z->parent->parent->right;
+                if (uncle->color == RED) { // if uncle is red, swap colors and move up the tree(case 2)
                     z->parent->color = BLACK;
-                    y->color = BLACK;
+                    uncle->color = BLACK;
                     z->parent->parent->color = RED;
-                    z = z->parent->parent;
-                } else {
-                    if (z == z->parent->right) {
+                    z = z->parent->parent; // move up the tree
+                } else { // if uncle is black, perform rotations
+                    if (z == z->parent->right) { // if z is right child, left rotate at parent, make it a left-left case(case 1.b)
                         z = z->parent;
                         leftRotate(z);
-                    }
-                    z->parent->color = BLACK;
+                    } // swap color between parent and grandparent, then right rotate at grandparent(case 1.a)
+                    z->parent->color = BLACK; 
                     z->parent->parent->color = RED;
                     rightRotate(z->parent->parent);
                 }
-            } else {
-                RBNode<T>* y = z->parent->parent->left;
-                if (y->color == RED) {
+            } else { // inserted node is in right subtree (mirror case)
+                RBNode<T>* uncle = z->parent->parent->left;
+                if (uncle->color == RED) { // if uncle is red, swap colors and move up the tree
                     z->parent->color = BLACK;
-                    y->color = BLACK;
+                    uncle->color = BLACK;
                     z->parent->parent->color = RED;
                     z = z->parent->parent;
-                } else {
+                } else { // if uncle is black, perform rotations
                     if (z == z->parent->left) {
                         z = z->parent;
                         rightRotate(z);
@@ -111,7 +109,7 @@ private:
                 }
             }
         }
-        root->color = BLACK;
+        root->color = BLACK; // Ensure the root is always black
     }
 
     void transplant(RBNode<T>* u, RBNode<T>* v) {
@@ -133,28 +131,31 @@ private:
     }
 
     void deleteFixup(RBNode<T>* x) {
-        while (x != root && x->color == BLACK) {
-            if (x == x->parent->left) {
-                RBNode<T>* w = x->parent->right;
-                if (w->color == RED) {
-                    w->color = BLACK;
+        while (x != root && x->color == BLACK) { // while x is not root and x is black. if root and black, done(case 2)
+            if (x == x->parent->left) { // x is left child
+                RBNode<T>* sibling = x->parent->right;
+                if (sibling->color == RED) { // if sibling is red, rotate(p, s) and swap color of p and s(case 3)
+                    sibling->color = BLACK;
                     x->parent->color = RED;
                     leftRotate(x->parent);
-                    w = x->parent->right;
+                    sibling = x->parent->right; // update sibling
                 }
-                if (w->left->color == BLACK && w->right->color == BLACK) {
-                    w->color = RED;
+                if (sibling->left->color == BLACK && sibling->right->color == BLACK) { 
+                    // if both of sibling's children are black, recolor sibling to red and move up the tree(case 4.3)
+                    // only case that goes up the tree
+                    sibling->color = RED;
                     x = x->parent;
                 } else {
-                    if (w->right->color == BLACK) {
-                        w->left->color = BLACK;
-                        w->color = RED;
-                        rightRotate(w);
-                        w = x->parent->right;
+                    if (sibling->right->color == BLACK) { 
+                        // if sibling's right child is black, rotate(s, left) and swap colors(case 4.2)
+                        sibling->left->color = BLACK;
+                        sibling->color = RED;
+                        rightRotate(sibling);
+                        sibling = x->parent->right;
                     }
-                    w->color = x->parent->color;
+                    sibling->color = x->parent->color; // swap colors between parent and sibling, then rotate(p, right)(case 4.1)
                     x->parent->color = BLACK;
-                    w->right->color = BLACK;
+                    sibling->right->color = BLACK;
                     leftRotate(x->parent);
                     x = root;
                 }
@@ -184,7 +185,7 @@ private:
                 }
             }
         }
-        x->color = BLACK;
+        x->color = BLACK; // if red just recolor to black(case 1)
     }
 
     RBNode<T>* searchNode(T key) {
@@ -307,7 +308,7 @@ public:
         
         delete z;
         
-        if (yOriginalColor == BLACK) {
+        if (yOriginalColor == BLACK) { // fix black height violation
             deleteFixup(x);
         }
         

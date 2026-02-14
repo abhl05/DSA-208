@@ -56,16 +56,16 @@ public:
         return y;
     }
 
-    Node* insert(Node* node, K key, int& is_inserted) {
+    Node* insert(Node* node, K key, V value, int& is_inserted) {
         if (!node) {
             is_inserted = 1;
-            return new Node(key);
+            return new Node(key, value);
         }
 
         if (key < node->key)
-            node->left = insert(node->left, key, is_inserted);
+            node->left = insert(node->left, key, value, is_inserted);
         else if (key > node->key)
-            node->right = insert(node->right, key, is_inserted);
+            node->right = insert(node->right, key, value, is_inserted);
         else {
             return node; // Duplicate keys not allowed
         }
@@ -97,9 +97,9 @@ public:
         return node;
     }
 
-    int insert(K key) {
+    int insert(K key, V value) {
         int inserted = 0;
-        root = insert(root, key, inserted);
+        root = insert(root, key, value, inserted);
         if (inserted) node_count++;
         return inserted;
     }
@@ -247,7 +247,7 @@ int main() {
             cout << e << " " << x << " " << tree.remove(x) << endl;
         }
         else if (e == 1) {
-            cout << e << " " << x << " " << tree.insert(x) << endl;
+            cout << e << " " << x << " " << tree.insert(x, x) << endl;
         } else if (e == 2) {
             switch (x) {
                 case 1:
